@@ -1,4 +1,4 @@
-extern crate dotenv;
+use clap::{Parser, Subcommand};
 use dotenv::dotenv;
 use std::env;
 
@@ -8,13 +8,11 @@ use log::LevelFilter;
 use simple_logger::SimpleLogger;
 
 mod auth;
+mod dns;
 mod godaddy;
-mod ip_handler;
-pub mod records;
-use crate::auth::Auth;
-use records::dns_record::{DNSRecord, RecordType};
 
-use clap::{Parser, Subcommand};
+use auth::Auth;
+use dns::{DNSRecord, RecordType};
 
 #[derive(Parser, Debug)]
 #[clap(
@@ -107,7 +105,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 ttl: 600,
                 ..Default::default()
             };
-            records::update_record(record, &auth).await;
+            godaddy::update_record(record, &auth).await;
             return Ok(());
         }
         SubCommands::Delete(args) => {
@@ -117,12 +115,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 record_type: args.record_type,
                 ..Default::default()
             };
-            records::delete_record(record, &auth).await;
+            godaddy::delete_record(record, &auth).await;
             return Ok(());
         }
         SubCommands::List(args) => {
             let domain = args.domain;
-            records::list_records(&domain, &auth).await;
+            godaddy::list_records(&domain, &auth).await;
             return Ok(());
         }
     }
